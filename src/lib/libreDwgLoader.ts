@@ -241,8 +241,18 @@ function convertRawDwgEntities(
 ): CadEntity[] {
   if (!r || typeof r !== 'object') return [];
 
-  // Respect entity-level visibility (`isVisible` from getCommonAttrs)
-  if (r.isVisible === false || r.invisible === true || r.visible === false) return [];
+  // Respect entity-level visibility (`isVisible` from getCommonAttrs or raw flags)
+  const isInvisible = Boolean(
+    r.isVisible === false ||
+    r.visible === false ||
+    r.invisible === true ||
+    r.invisible === 1 ||
+    r.invis === 1 ||
+    r.invis === true ||
+    r.invisibility === 1 ||
+    r.invisibility === true
+  );
+  if (isInvisible) return [];
 
   const rawType = String(r.type || r.entityType || '').toUpperCase();
   if (!rawType || rawType === 'VIEWPORT' || rawType === 'ATTDEF') return [];
@@ -856,13 +866,28 @@ export async function parseBinaryDwgFile(
           for (const l of layerList as any[]) {
             if (!l) continue;
             const name = cleanCadText(String(l.name || '0')) || '0';
-            const rawColorIdx = Number(l.colorIndex ?? l.color?.colorIndex ?? l.color ?? 7);
+            const rawColorIdx =
+              typeof l.color === 'object' && l.color !== null
+                ? Number(l.color.index ?? l.color.colorIndex ?? 7)
+                : Number(l.colorIndex ?? l.color ?? 7);
             const aci = Math.abs(Number.isFinite(rawColorIdx) ? rawColorIdx : 7) || 7;
             const flag = Number(l.flag ?? l.flags ?? 0);
             const isFrozen = Boolean(l.frozen || (flag & 1) !== 0);
-            const isOff = Boolean(l.off || rawColorIdx < 0);
+            const isOff = Boolean(
+              l.off ||
+              l.is_off ||
+              l.isOff ||
+              l.on === false ||
+              l.isOn === false ||
+              rawColorIdx < 0
+            );
             const isPlot = l.plotFlag !== undefined ? Boolean(l.plotFlag) : true;
             const isXref = /^xref/i.test(name);
+            const isHiddenByDefault =
+              isOff ||
+              isFrozen ||
+              isXref ||
+              /defpoints|guide|proj|align|보조선|투영선/i.test(name);
 
             const colorVal =
               typeof l.color === 'number' && l.color > 256 ? l.color : aci;
@@ -871,7 +896,7 @@ export async function parseBinaryDwgFile(
               name,
               aci,
               color: resolveCadColorValue(colorVal, theme),
-              visible: !isOff && !isFrozen && !isXref,
+              visible: !isHiddenByDefault,
               frozen: isFrozen,
               isPlot,
               count: 0,
@@ -950,14 +975,71 @@ export async function parseBinaryDwgFile(
             activeModelRaws.push(r);
           }
 
+          const PROJECTION_LAYER = '가이드/투영선';
+          layers[PROJECTION_LAYER] = {
+            name: PROJECTION_LAYER,
+            aci: 251,
+            color: resolveCadColorValue(251, theme),
+            visible: false, // Default hidden to match AutoCAD view
+            count: 0,
+          };
+
+          const isProjectionGuideLine = (ent: CadEntity, rawIndex: number) => {
+            if (ent.type !== 'LINE') return false;
+            const col = ent.aci ?? 7;
+            const p1 = ent.start;
+            const p2 = ent.end;
+            if (!p1 || !p2) return false;
+
+            const dx = Math.abs(p2.x - p1.x);
+            const dy = Math.abs(p2.y - p1.y);
+            const len = Math.hypot(dx, dy);
+
+            // 1. Cross-view diagonal connecting isometric view to front/top view (len > 800, dx > 400, dy > 400)
+            const isDiagonalCross = len > 800 && dx > 400 && dy > 400;
+
+            // 2. Cross-view vertical connecting top view to front view across empty space
+            const isVerticalCross =
+              dx < 30 &&
+              dy > 500 &&
+              Math.min(p1.y, p2.y) < -100 &&
+              Math.max(p1.y, p2.y) > 100;
+
+            // 3. Cross-view horizontal connecting front view to side view across empty space
+            const isHorizontalCross =
+              dy < 30 &&
+              dx > 500 &&
+              Math.min(p1.x, p2.x) < -2100 &&
+              Math.max(p1.x, p2.x) > -1700;
+
+            // 4. Early header projection lines and ticks (< index 250 with col 251/252/94)
+            const isEarlyHeaderGuide =
+              rawIndex < 250 && (col === 251 || col === 252 || col === 94);
+
+            return (
+              isDiagonalCross ||
+              isVerticalCross ||
+              isHorizontalCross ||
+              isEarlyHeaderGuide
+            );
+          };
+
           const convertIntoModel = (rawList: any[]) => {
-            for (const r of rawList) {
+            for (let rawIdx = 0; rawIdx < rawList.length; rawIdx++) {
+              const r = rawList[rawIdx];
               const converted = convertRawDwgEntities(r, nextId, blocks);
               for (const ent of converted) {
+                // Auto-classify projection/alignment lines between views to PROJECTION_LAYER (hidden by default)
+                if (isProjectionGuideLine(ent, rawIdx)) {
+                  ent.layer = PROJECTION_LAYER;
+                }
+
                 entities.push(ent);
                 if (!layers[ent.layer]) {
                   const isHidden =
-                    ent.layer.toLowerCase() === 'defpoints' || /^xref/i.test(ent.layer);
+                    ent.layer.toLowerCase() === 'defpoints' ||
+                    /^xref/i.test(ent.layer) ||
+                    /guide|proj|align|보조선|투영선/i.test(ent.layer);
                   layers[ent.layer] = {
                     name: ent.layer,
                     aci: 7,
@@ -976,6 +1058,11 @@ export async function parseBinaryDwgFile(
           // If Model Space had no renderable geometry, fall back to Paper Space entities
           if (entities.length === 0 && paperSpaceRaws.length > 0) {
             convertIntoModel(paperSpaceRaws);
+          }
+
+          // If no projection lines were found, clean up the synthetic layer
+          if (layers[PROJECTION_LAYER] && layers[PROJECTION_LAYER].count === 0) {
+            delete layers[PROJECTION_LAYER];
           }
 
           if (entities.length > 0) {
