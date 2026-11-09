@@ -40,8 +40,8 @@ export const UniversalModeBar: React.FC<UniversalModeBarProps> = ({
         <span className="font-bold text-[#1A1A1A]">
           {Math.round(zoom * 100)}%
         </span>
-        <span className="text-slate-300">|</span>
-        <span className="text-slate-700 font-semibold truncate max-w-[140px] sm:max-w-none">
+        <span className="hidden sm:inline text-slate-300">|</span>
+        <span className="hidden sm:inline text-slate-700 font-semibold truncate max-w-[140px] sm:max-w-none">
           X: {mouseWorld.x.toFixed(0)}, Y: {mouseWorld.y.toFixed(0)}
         </span>
         {isCalibrated && (
@@ -59,14 +59,14 @@ export const UniversalModeBar: React.FC<UniversalModeBarProps> = ({
         {/* Ivory White Theme (Shinsegae Default) */}
         <button
           onClick={() => onSetThemePreference('white')}
-          className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition ${
+          className={`px-2 sm:px-2.5 py-0.5 rounded-lg text-xs font-bold transition ${
             theme === 'white'
               ? 'bg-[#C8102E] text-white shadow-xs'
               : 'text-slate-600 hover:bg-slate-200/70'
           }`}
           title="신세계 표준 라이트(백지) 도면 테마"
         >
-          백지 (기본)
+          백지<span className="hidden sm:inline"> (기본)</span>
         </button>
 
         {/* CAD Dark Theme */}

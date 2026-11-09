@@ -85,11 +85,11 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         {/* Open Drawing & Recent Modal Button */}
         <button
           onClick={onOpenSelectModal}
-          className="bg-[#C8102E] hover:bg-[#a50d26] text-white border border-[#9f0c24] px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs active:scale-95 transition"
+          className="bg-[#C8102E] hover:bg-[#a50d26] text-white border border-[#9f0c24] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1 sm:gap-1.5 shadow-xs active:scale-95 transition"
           title="도면 파일 열기 및 최근 도면 목록"
         >
           <FolderOpen className="w-4 h-4 shrink-0" />
@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onOpenCloudModal && (
           <button
             onClick={onOpenCloudModal}
-            className="p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
+            className="p-1.5 sm:p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
             title="Google Drive 및 Dropbox 클라우드 도면 연동"
           >
             <Cloud className="w-4 h-4" />
@@ -116,16 +116,16 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Layers & Search Modal Button */}
         <button
           onClick={onOpenLayersModal}
-          className="p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
+          className="p-1.5 sm:p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
           title="레이어 제어 및 도면 텍스트 검색"
         >
           <Layers className="w-4 h-4" />
         </button>
 
-        {/* Recent & Samples Modal Button */}
+        {/* Recent & Samples Modal Button - Hidden on mobile to avoid overcrowding */}
         <button
           onClick={onOpenSelectModal}
-          className="p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
+          className="hidden sm:inline-flex p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
           title="최근 열어본 도면 및 샘플 보기"
         >
           <FileCode className="w-4 h-4" />
@@ -135,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
         {isInstallable && (
           <button
             onClick={install}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 shadow-xs active:scale-95 transition"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1 shadow-xs active:scale-95 transition"
             title="스마트폰 홈 화면에 즉시 앱으로 설치"
           >
             <Download className="w-4 h-4 shrink-0 animate-bounce" />
@@ -143,21 +143,21 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        {/* Deploy & Mobile Install Guide Modal */}
+        {/* Deploy & Mobile Install Guide Modal - Hidden on extra small mobile */}
         <button
           onClick={onOpenDeployModal}
-          className="bg-[#1A1A1A] hover:bg-[#333333] text-white border border-black px-2.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 shadow-xs active:scale-95 transition"
+          className="hidden sm:inline-flex bg-[#1A1A1A] hover:bg-[#333333] text-white border border-black px-2.5 py-2 rounded-xl text-xs font-bold items-center gap-1 shadow-xs active:scale-95 transition"
           title="스마트폰 앱 설치 및 개인용 배포 안내"
         >
           <Smartphone className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline">폰 설치·배포</span>
+          <span className="hidden md:inline">폰 설치·배포</span>
         </button>
 
         {/* Hide Menus / Fullscreen View Toggle */}
         {onToggleMenuHidden && (
           <button
             onClick={onToggleMenuHidden}
-            className="p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
+            className="p-1.5 sm:p-2 rounded-xl bg-[#F8F9FA] hover:bg-slate-200/80 text-[#1A1A1A] border border-slate-300 transition"
             title="상단/하단 메뉴바 숨기기 (도면 전체화면 몰입 뷰)"
           >
             <EyeOff className="w-4 h-4" />

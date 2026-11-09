@@ -1327,24 +1327,24 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
 
       {/* Empty State Welcome Screen (Shinsegae Food Corporate Identity) */}
       {entities.length === 0 && !isLoading && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-[#F8F9FA]">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center">
-            <div className="w-14 h-14 rounded-2xl bg-[#C8102E] text-white flex items-center justify-center mb-3.5 shadow-sm">
-              <Compass className="w-7 h-7" />
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-3 sm:p-6 text-center bg-[#F8F9FA] overflow-y-auto">
+          <div className="w-full max-w-[calc(100vw-1.5rem)] sm:max-w-md bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col items-center my-auto">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#C8102E] text-white flex items-center justify-center mb-2.5 sm:mb-3.5 shadow-sm">
+              <Compass className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#C8102E]/10 text-[#C8102E] border border-[#C8102E]/25 text-[11px] font-extrabold tracking-tight mb-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#C8102E]/10 text-[#C8102E] border border-[#C8102E]/25 text-[10px] sm:text-[11px] font-extrabold tracking-tight mb-2">
               <span>SHINSEGAE FOOD · 공무기획 엔지니어링</span>
             </div>
-            <h2 className="text-base sm:text-lg font-bold text-[#1A1A1A] mb-1.5">
+            <h2 className="text-sm sm:text-lg font-bold text-[#1A1A1A] mb-1 sm:mb-1.5">
               신세계푸드 모바일 DWG · DXF 도면 뷰어
             </h2>
-            <p className="text-xs text-slate-600 max-w-sm leading-relaxed mb-5">
+            <p className="text-[11px] sm:text-xs text-slate-600 max-w-sm leading-relaxed mb-4 sm:mb-5">
               스마트폰·태블릿·PC에 저장된 <strong>.dwg</strong> 및 <strong>.dxf</strong> 원본 도면을 외부 서버 전송 없이 기기 내부에서 즉시 해독하여 확대·축소·레이어 제어·실측 치수 측정을 수행합니다.
             </p>
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2.5 w-full">
               <button
                 onClick={onOpenFileClick}
-                className="bg-[#C8102E] hover:bg-[#a50d26] text-white flex-1 w-full py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-xs"
+                className="bg-[#C8102E] hover:bg-[#a50d26] text-white flex-1 w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-xs"
               >
                 <FolderOpen className="w-4 h-4" />
                 <span>내 기기 도면 열기</span>
@@ -1352,23 +1352,23 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
               {onOpenCloudModal && (
                 <button
                   onClick={onOpenCloudModal}
-                  className="bg-[#1A1A1A] hover:bg-[#333333] text-white flex-1 w-full py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-xs"
+                  className="bg-[#1A1A1A] hover:bg-[#333333] text-white flex-1 w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition shadow-xs"
                 >
                   <Cloud className="w-4 h-4" />
                   <span>클라우드 (Drive·Dropbox)</span>
                 </button>
               )}
             </div>
-            <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 w-full">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 w-full">
               <button
                 onClick={onLoadArchSample}
-                className="flex-1 px-3 py-2 rounded-lg bg-[#F8F9FA] hover:bg-slate-200/70 text-[11px] font-semibold text-[#1A1A1A] border border-slate-200 transition"
+                className="flex-1 min-w-[120px] px-2.5 py-1.5 sm:py-2 rounded-lg bg-[#F8F9FA] hover:bg-slate-200/70 text-[10px] sm:text-[11px] font-semibold text-[#1A1A1A] border border-slate-200 transition"
               >
                 📐 건축 평면도 샘플
               </button>
               <button
                 onClick={onLoadMechSample}
-                className="flex-1 px-3 py-2 rounded-lg bg-[#F8F9FA] hover:bg-slate-200/70 text-[11px] font-semibold text-[#1A1A1A] border border-slate-200 transition"
+                className="flex-1 min-w-[120px] px-2.5 py-1.5 sm:py-2 rounded-lg bg-[#F8F9FA] hover:bg-slate-200/70 text-[10px] sm:text-[11px] font-semibold text-[#1A1A1A] border border-slate-200 transition"
               >
                 ⚙️ 기계 조립도 샘플
               </button>
@@ -1376,30 +1376,30 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
 
             {/* Recent Drawings Preview Cards on Welcome Screen */}
             {recentDrawings.length > 0 && (
-              <div className="w-full mt-5 pt-4 border-t border-slate-200">
-                <div className="flex items-center justify-between mb-2.5 px-0.5">
-                  <span className="text-xs font-bold flex items-center gap-1.5 text-[#1A1A1A]">
+              <div className="w-full mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-200">
+                <div className="flex items-center justify-between mb-2 px-0.5">
+                  <span className="text-[11px] sm:text-xs font-bold flex items-center gap-1.5 text-[#1A1A1A]">
                     <History className="w-3.5 h-3.5 text-[#C8102E]" />
                     최근 열어본 도면
                   </span>
                   {onOpenSelectModal && (
                     <button
                       onClick={onOpenSelectModal}
-                      className="text-[11px] text-[#C8102E] font-bold hover:underline"
+                      className="text-[10px] sm:text-[11px] text-[#C8102E] font-bold hover:underline"
                     >
                       전체 보기 ({recentDrawings.length}) →
                     </button>
                   )}
                 </div>
-                <div className="flex gap-2.5 overflow-x-auto pb-1.5 no-scrollbar">
+                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                   {recentDrawings.slice(0, 4).map((item) => (
                     <div
                       key={item.id}
                       onClick={() => onSelectRecentDrawing?.(item)}
-                      className="w-36 shrink-0 cursor-pointer rounded-xl bg-[#F8F9FA] hover:bg-white border border-slate-200 hover:border-[#C8102E]/40 p-2 text-left hover:shadow-sm transition active:scale-95"
+                      className="w-28 sm:w-36 shrink-0 cursor-pointer rounded-xl bg-[#F8F9FA] hover:bg-white border border-slate-200 hover:border-[#C8102E]/40 p-1.5 sm:p-2 text-left hover:shadow-sm transition active:scale-95"
                       title={`${item.fileName} 다시 열기`}
                     >
-                      <div className="w-full h-20 rounded-lg overflow-hidden bg-slate-900 mb-1.5 border border-slate-200 flex items-center justify-center">
+                      <div className="w-full h-16 sm:h-20 rounded-lg overflow-hidden bg-slate-900 mb-1 border border-slate-200 flex items-center justify-center">
                         {item.thumbnail ? (
                           <img
                             src={item.thumbnail}
@@ -1407,13 +1407,13 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
                             className="w-full h-full object-contain"
                           />
                         ) : (
-                          <span className="text-slate-400 text-[10px]">미리보기</span>
+                          <span className="text-slate-400 text-[9px] sm:text-[10px]">미리보기</span>
                         )}
                       </div>
-                      <div className="text-[11px] font-bold text-[#1A1A1A] truncate">
+                      <div className="text-[10px] sm:text-[11px] font-bold text-[#1A1A1A] truncate">
                         {item.fileName}
                       </div>
-                      <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1 mt-0.5">
+                      <div className="text-[9px] sm:text-[10px] text-slate-500 font-mono flex items-center gap-1 mt-0.5">
                         <Clock className="w-2.5 h-2.5 text-[#C8102E]" />
                         {formatRelativeTime(item.lastOpenedAt)}
                       </div>
@@ -1443,59 +1443,61 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
         </div>
       )}
 
-      {/* Floating Vertical Tool Pill (Zoom In, Zoom Out, Fit, Rotate, Clear) */}
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md border border-slate-200 p-1.5 rounded-2xl shadow-lg">
-        <button
-          onClick={() => onUpdateCamera(camX, camY, Math.min(2000, zoom * 1.25))}
-          className="w-9 h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center text-lg font-bold transition active:scale-95"
-          title="도면 확대"
-        >
-          +
-        </button>
-        <button
-          onClick={() => onUpdateCamera(camX, camY, Math.max(0.0002, zoom / 1.25))}
-          className="w-9 h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center text-lg font-bold transition active:scale-95"
-          title="도면 축소"
-        >
-          −
-        </button>
-        <button
-          onClick={handleFitExtents}
-          className="w-9 h-9 rounded-xl bg-[#C8102E] hover:bg-[#a50d26] text-white flex items-center justify-center transition active:scale-95 shadow-xs"
-          title="도면 전체 화면 맞춤"
-        >
-          <Maximize2 className="w-4 h-4" />
-        </button>
-        <button
-          onClick={onRotate90}
-          className="w-9 h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center transition active:scale-95"
-          title="도면 90도 회전"
-        >
-          <RotateCw className="w-4 h-4" />
-        </button>
-        {onToggleMenuHidden && (
+      {/* Floating Vertical Tool Pill (Zoom In, Zoom Out, Fit, Rotate, Clear) - Only visible when drawing is loaded */}
+      {entities.length > 0 && (
+        <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1 sm:gap-1.5 bg-white/95 backdrop-blur-md border border-slate-200 p-1 sm:p-1.5 rounded-2xl shadow-lg">
           <button
-            onClick={onToggleMenuHidden}
-            className="w-9 h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center transition active:scale-95"
-            title={isMenuHidden ? '메뉴바 보이기' : '메뉴바 숨기기 (도면 화면 최대화)'}
+            onClick={() => onUpdateCamera(camX, camY, Math.min(2000, zoom * 1.25))}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center text-base sm:text-lg font-bold transition active:scale-95"
+            title="도면 확대"
           >
-            {isMenuHidden ? (
-              <Eye className="w-4 h-4 text-[#C8102E]" />
-            ) : (
-              <EyeOff className="w-4 h-4 text-slate-700" />
-            )}
+            +
           </button>
-        )}
-        {measurements.length > 0 && (
           <button
-            onClick={onClearMeasurements}
-            className="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#C8102E] border border-rose-200 flex items-center justify-center transition active:scale-95"
-            title="측정선 모두 지우기"
+            onClick={() => onUpdateCamera(camX, camY, Math.max(0.0002, zoom / 1.25))}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center text-base sm:text-lg font-bold transition active:scale-95"
+            title="도면 축소"
           >
-            <Eraser className="w-4 h-4" />
+            −
           </button>
-        )}
-      </div>
+          <button
+            onClick={handleFitExtents}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#C8102E] hover:bg-[#a50d26] text-white flex items-center justify-center transition active:scale-95 shadow-xs"
+            title="도면 전체 화면 맞춤"
+          >
+            <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
+          <button
+            onClick={onRotate90}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center transition active:scale-95"
+            title="도면 90도 회전"
+          >
+            <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
+          {onToggleMenuHidden && (
+            <button
+              onClick={onToggleMenuHidden}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1A1A] border border-slate-200 flex items-center justify-center transition active:scale-95"
+              title={isMenuHidden ? '메뉴바 보이기' : '메뉴바 숨기기 (도면 화면 최대화)'}
+            >
+              {isMenuHidden ? (
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#C8102E]" />
+              ) : (
+                <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-700" />
+              )}
+            </button>
+          )}
+          {measurements.length > 0 && (
+            <button
+              onClick={onClearMeasurements}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#C8102E] border border-rose-200 flex items-center justify-center transition active:scale-95"
+              title="측정선 모두 지우기"
+            >
+              <Eraser className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Mobile Touch Loupe (Magnifying Glass) */}
       <div
