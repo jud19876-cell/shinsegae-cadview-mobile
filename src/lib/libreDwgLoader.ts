@@ -1005,11 +1005,6 @@ export async function parseBinaryDwgFile(
             convertIntoModel(paperSpaceRaws);
           }
 
-          // If no projection lines were found, clean up the synthetic layer
-          if (layers[PROJECTION_LAYER] && layers[PROJECTION_LAYER].count === 0) {
-            delete layers[PROJECTION_LAYER];
-          }
-
           if (entities.length > 0) {
             return {
               fileName,
