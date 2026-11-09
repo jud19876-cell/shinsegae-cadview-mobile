@@ -23,7 +23,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Web Dependencies
-        run: npm ci || npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build Web Production Bundle
         run: npm run build
