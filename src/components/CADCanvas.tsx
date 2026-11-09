@@ -369,14 +369,14 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
   };
 
   const handlePointTap = (sx: number, sy: number) => {
-    const snap = findSnapPoint(sx, sy);
-    const wp = snap ? { x: snap.x, y: snap.y } : screenToWorld(sx, sy);
-
     if (mode === 'select') {
       const hit = findEntityAt(sx, sy);
       onSelectEntity(hit);
       return;
     }
+
+    const snap = mode === 'measure' || mode === 'calibrate' ? findSnapPoint(sx, sy) : null;
+    const wp = snap ? { x: snap.x, y: snap.y } : screenToWorld(sx, sy);
 
     if (mode === 'measure') {
       if (measurePoints.length === 0) {
@@ -422,12 +422,28 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
     selectedId: string;
     measurementsLen: number;
     measurePointsKey: string;
+    isInteracting: boolean;
   }
 
   const offscreenRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const isDirtyRef = useRef<boolean>(true);
+  const isInteractingRef = useRef<boolean>(false);
+  const interactTimerRef = useRef<number | null>(null);
+  const lastMouseWorldEmitRef = useRef<number>(0);
   const lastRenderStateRef = useRef<RenderStateSnapshot | null>(null);
+
+  const markInteracting = useCallback(() => {
+    isInteractingRef.current = true;
+    if (interactTimerRef.current !== null) {
+      window.clearTimeout(interactTimerRef.current);
+    }
+    interactTimerRef.current = window.setTimeout(() => {
+      isInteractingRef.current = false;
+      interactTimerRef.current = null;
+      latestRef.current.requestRender(true);
+    }, 140);
+  }, []);
 
   const latestRef = useRef({
     camX,
@@ -541,6 +557,7 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
     const measurePointsKey = measurePoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(';');
 
     const last = lastRenderStateRef.current;
+    const isInteracting = isInteractingRef.current;
     const hasVisualChanges =
       isDirtyRef.current ||
       !last ||
@@ -562,7 +579,8 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
       last.layersKey !== layersKey ||
       last.selectedId !== selectedId ||
       last.measurementsLen !== measurements.length ||
-      last.measurePointsKey !== measurePointsKey;
+      last.measurePointsKey !== measurePointsKey ||
+      last.isInteracting !== isInteracting;
 
     if (!hasVisualChanges) {
       // Request-on-demand: Zero visual changes between frames, bypass redraw completely!
@@ -591,6 +609,7 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
       selectedId,
       measurementsLen: measurements.length,
       measurePointsKey,
+      isInteracting,
     };
 
     let offscreen = offscreenRef.current;
@@ -672,13 +691,18 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
         ctx.drawImage(ent.img, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
       }
 
-      // Render Batches
+      // Render Batches with LOD Sub-pixel Culling & Fast Interactive Acceleration
       const halfW = cw / 2;
       const halfH = ch / 2;
       const rad = (rotation * Math.PI) / 180;
       const cosA = Math.cos(rad);
       const sinA = Math.sin(rad);
       const noRot = rotation === 0;
+      const isLargeDrawing = entities.length > 50000;
+      const fastInteractive = isInteracting && isLargeDrawing;
+      const minSegPx = fastInteractive ? 2.2 : isLargeDrawing ? 0.85 : 0.4;
+      const minArcPx = fastInteractive ? 1.8 : isLargeDrawing ? 0.85 : 0.55;
+      const MAX_PATH_OPS = 4000;
 
       ctx.lineWidth = 1.15;
       for (let bIdx = 0; bIdx < renderBatches.length; bIdx++) {
@@ -687,7 +711,10 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
         if (lyr && !lyr.visible) continue;
 
         ctx.strokeStyle = batch.color;
-        if (batch.dashType === 'C') {
+        if (fastInteractive || (isLargeDrawing && zoom < 0.08)) {
+          // Bypass heavy software dash tessellation during pan/zoom or extreme overview zoom
+          ctx.setLineDash([]);
+        } else if (batch.dashType === 'C') {
           ctx.setLineDash([10, 4, 3, 4]);
         } else if (batch.dashType === 'D') {
           ctx.setLineDash([6, 4]);
@@ -696,6 +723,7 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
         }
 
         ctx.beginPath();
+        let opCount = 0;
         const coords = batch.lineCoords;
         if (noRot) {
           for (let i = 0; i < coords.length; i += 4) {
@@ -715,8 +743,14 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
               (sy1 > ch && sy2 > ch)
             )
               continue;
+            if (Math.abs(sx2 - sx1) + Math.abs(sy2 - sy1) < minSegPx) continue;
             ctx.moveTo(sx1, sy1);
             ctx.lineTo(sx2, sy2);
+            if (++opCount >= MAX_PATH_OPS) {
+              ctx.stroke();
+              ctx.beginPath();
+              opCount = 0;
+            }
           }
         } else {
           for (let i = 0; i < coords.length; i += 4) {
@@ -740,12 +774,18 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
               (sy1 > ch && sy2 > ch)
             )
               continue;
+            if (Math.abs(sx2 - sx1) + Math.abs(sy2 - sy1) < minSegPx) continue;
             ctx.moveTo(sx1, sy1);
             ctx.lineTo(sx2, sy2);
+            if (++opCount >= MAX_PATH_OPS) {
+              ctx.stroke();
+              ctx.beginPath();
+              opCount = 0;
+            }
           }
         }
 
-        // Polylines
+        // Polylines (if any were not flattened into lineCoords)
         const polys = batch.polylines;
         for (let pIdx = 0; pIdx < polys.length; pIdx++) {
           const verts = polys[pIdx].vertices;
@@ -767,48 +807,76 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
           }
         }
 
-        // Circles
+        // Circles (inlined transform)
         const circles = batch.circles;
         for (let cIdx = 0; cIdx < circles.length; cIdx++) {
           const c = circles[cIdx];
           const r = c.radius * zoom;
-          if (r < 0.6) continue;
-          const sc = worldToScreen(c.center.x, c.center.y);
-          if (sc.x + r < 0 || sc.x - r > cw || sc.y + r < 0 || sc.y - r > ch)
+          if (r < minArcPx) continue;
+          const dx = c.center.x - camX;
+          const dy = c.center.y - camY;
+          const sx = noRot ? halfW + dx * zoom : halfW + (dx * cosA - dy * sinA) * zoom;
+          const sy = noRot ? halfH - dy * zoom : halfH - (dx * sinA + dy * cosA) * zoom;
+          if (sx + r < 0 || sx - r > cw || sy + r < 0 || sy - r > ch)
             continue;
-          ctx.moveTo(sc.x + r, sc.y);
-          ctx.arc(sc.x, sc.y, r, 0, Math.PI * 2);
+          ctx.moveTo(sx + r, sy);
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          if (++opCount >= MAX_PATH_OPS) {
+            ctx.stroke();
+            ctx.beginPath();
+            opCount = 0;
+          }
         }
 
-        // Arcs
+        // Arcs (inlined transform)
         const arcs = batch.arcs;
         for (let aIdx = 0; aIdx < arcs.length; aIdx++) {
           const a = arcs[aIdx];
           const r = a.radius * zoom;
-          if (r < 0.6) continue;
-          const sc = worldToScreen(a.center.x, a.center.y);
-          if (sc.x + r < 0 || sc.x - r > cw || sc.y + r < 0 || sc.y - r > ch)
+          if (r < minArcPx) continue;
+          const dx = a.center.x - camX;
+          const dy = a.center.y - camY;
+          const sx = noRot ? halfW + dx * zoom : halfW + (dx * cosA - dy * sinA) * zoom;
+          const sy = noRot ? halfH - dy * zoom : halfH - (dx * sinA + dy * cosA) * zoom;
+          if (sx + r < 0 || sx - r > cw || sy + r < 0 || sy - r > ch)
             continue;
           const sRad = (-(a.startAngle + rotation) * Math.PI) / 180;
           const eRad = (-(a.endAngle + rotation) * Math.PI) / 180;
-          ctx.moveTo(sc.x + Math.cos(sRad) * r, sc.y + Math.sin(sRad) * r);
-          ctx.arc(sc.x, sc.y, r, sRad, eRad, true);
+          ctx.moveTo(sx + Math.cos(sRad) * r, sy + Math.sin(sRad) * r);
+          ctx.arc(sx, sy, r, sRad, eRad, true);
+          if (++opCount >= MAX_PATH_OPS) {
+            ctx.stroke();
+            ctx.beginPath();
+            opCount = 0;
+          }
         }
 
-        // Ellipses
+        // Ellipses (inlined transform + ctx.moveTo before ctx.ellipse to prevent cross-view connecting lines!)
         const ellipses = batch.ellipses;
         for (let eIdx = 0; eIdx < ellipses.length; eIdx++) {
           const el = ellipses[eIdx];
-          const sc = worldToScreen(el.center.x, el.center.y);
           const majLen = Math.hypot(el.majorAxis.x, el.majorAxis.y) * zoom;
+          if (majLen < minArcPx) continue;
+          const dx = el.center.x - camX;
+          const dy = el.center.y - camY;
+          const sx = noRot ? halfW + dx * zoom : halfW + (dx * cosA - dy * sinA) * zoom;
+          const sy = noRot ? halfH - dy * zoom : halfH - (dx * sinA + dy * cosA) * zoom;
+          if (sx + majLen < 0 || sx - majLen > cw || sy + majLen < 0 || sy - majLen > ch)
+            continue;
           const minLen = majLen * el.axisRatio;
-          if (majLen < 1) continue;
-          const rotA =
-            (Math.atan2(el.majorAxis.y, el.majorAxis.x) - (rotation * Math.PI) / 180);
-          ctx.ellipse(sc.x, sc.y, majLen, minLen, rotA, 0, Math.PI * 2);
+          const rotA = -(Math.atan2(el.majorAxis.y, el.majorAxis.x) + rad);
+          ctx.moveTo(sx + majLen * Math.cos(rotA), sy + majLen * Math.sin(rotA));
+          ctx.ellipse(sx, sy, majLen, minLen, rotA, 0, Math.PI * 2);
+          if (++opCount >= MAX_PATH_OPS) {
+            ctx.stroke();
+            ctx.beginPath();
+            opCount = 0;
+          }
         }
 
-        ctx.stroke();
+        if (opCount > 0 || polys.length > 0) {
+          ctx.stroke();
+        }
       }
       ctx.setLineDash([]);
 
@@ -1103,6 +1171,7 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
       } = latestRef.current;
 
       if (isDraggingRef.current && mode === 'pan') {
+        markInteracting();
         const dx = sx - dragStartScreenRef.current.x;
         const dy = sy - dragStartScreenRef.current.y;
         const rad = (-rotation * Math.PI) / 180;
@@ -1112,8 +1181,12 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
         const ny = dragStartCamRef.current.y + (wx * Math.sin(rad) + wy * Math.cos(rad));
         onUpdateCamera(nx, ny, zoom);
       } else {
-        const wPt = screenToWorld(sx, sy);
-        onUpdateMouseWorld(wPt);
+        const now = performance.now();
+        if (now - lastMouseWorldEmitRef.current > 80) {
+          lastMouseWorldEmitRef.current = now;
+          const wPt = screenToWorld(sx, sy);
+          onUpdateMouseWorld(wPt);
+        }
         if (mode === 'measure' || mode === 'calibrate') {
           const sp = findSnapPoint(sx, sy);
           const prev = snapPointRef.current;
@@ -1154,6 +1227,7 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
+      markInteracting();
       const rect = canvas.getBoundingClientRect();
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
@@ -1225,6 +1299,7 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
           updateTouchLoupe(sx, sy);
           return;
         }
+        markInteracting();
         const dx = sx - dragStartScreenRef.current.x;
         const dy = sy - dragStartScreenRef.current.y;
         const rad = (-rotation * Math.PI) / 180;
@@ -1234,6 +1309,7 @@ export const CADCanvas = forwardRef<CADCanvasHandle, CADCanvasProps>(({
         const ny = dragStartCamRef.current.y + (wx * Math.sin(rad) + wy * Math.cos(rad));
         onUpdateCamera(nx, ny, zoom);
       } else if (e.touches.length === 2 && pinchDistStartRef.current > 10) {
+        markInteracting();
         const dist = Math.hypot(
           e.touches[1].clientX - e.touches[0].clientX,
           e.touches[1].clientY - e.touches[0].clientY

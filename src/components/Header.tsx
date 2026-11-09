@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
               {fileName || '신세계푸드 CAD 도면 뷰어'}
             </h1>
             {formatVersion && (
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-[#1A1A1A] border border-slate-300 shrink-0 font-semibold">
+              <span className="hidden md:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-[#1A1A1A] border border-slate-300 shrink-0 font-semibold">
                 {formatVersion}
               </span>
             )}

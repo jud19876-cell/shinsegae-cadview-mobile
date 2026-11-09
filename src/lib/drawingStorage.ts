@@ -15,8 +15,8 @@ export interface RecentDrawingItem {
   thumbnail: string; // base64 JPEG
 }
 
-const STORAGE_KEY = 'cadview_recent_drawings_v2';
-const DB_NAME = 'cadview_local_db_v2';
+const STORAGE_KEY = 'cadview_recent_drawings_v3';
+const DB_NAME = 'cadview_local_db_v3';
 const DB_VERSION = 1;
 const STORE_NAME = 'cached_drawings';
 
@@ -106,7 +106,7 @@ export function getRecentDrawings(): RecentDrawingItem[] {
   }
 }
 
-const MAX_DB_RAW_ENTITIES = 150000;
+const MAX_DB_RAW_ENTITIES = 80000;
 
 function isModelSafeForIndexedDb(model: DrawingModel): boolean {
   if (!model || !Array.isArray(model.entities)) return false;
