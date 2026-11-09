@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C8102E"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+  </defs>
+  <!-- Background with Safe Margin Squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <!-- Engineering Blueprint Grid Lines -->
+  <path d="M64 128h384M64 256h384M64 384h384M128 64v384M256 64v384M384 64v384" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="140" stroke="rgba(255,255,255,0.12)" stroke-width="2" fill="none" stroke-dasharray="8 8"/>
+
+  <!-- Compass / Caliper Icon -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Hinge head -->
+    <circle cx="256" cy="140" r="32" fill="#1E3A8A" stroke="#FFFFFF" stroke-width="20"/>
+    <circle cx="256" cy="140" r="12" fill="#FFFFFF"/>
+    <!-- Compass Legs -->
+    <path d="M236 166L144 380"/>
+    <path d="M276 166L368 380"/>
+    <!-- Cross Arc / Caliper -->
+    <path d="M172 312q84 -36 168 0" stroke="url(#accentGrad)" stroke-width="20"/>
+    <!-- Needle Points -->
+    <circle cx="144" cy="380" r="10" fill="#38BDF8"/>
+    <circle cx="368" cy="380" r="10" fill="#38BDF8"/>
+  </g>
+  <!-- DWG Badge Tag -->
+  <rect x="186" y="396" width="140" height="42" rx="10" fill="url(#accentGrad)"/>
+  <text x="256" y="426" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">DWG/DXF</text>
+</svg>
